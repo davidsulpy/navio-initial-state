@@ -97,5 +97,14 @@ def get_and_record_accel_gyro_compas():
 
 		time.sleep(0.1)
 
+if __name__ == "__main__":
+	baro_thread = threading.Thread(target=get_and_record_baro)
+	baro_thread.daemon = False
+	accel_thread = threading.Thread(target=get_and_record_200g_accel)
+	accel_thread.daemon = False
+	imu_thread = threading.Thread(target=get_and_record_accel_gyro_compas)
+	imu_thread.daemon = False
 
-
+	baro_thread.start()
+	accel_thread.start()
+	imu_thread.start()
