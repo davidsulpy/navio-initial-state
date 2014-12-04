@@ -59,9 +59,9 @@ def get_and_record_200g_accel():
 	while True:
 		try:
 			# Get the +/- 200g accelerometer readings
-			x_volts = adc.readADCSignalEnded(0, adc_gain, adc_sample_rate) / 1000
-			y_volts = adc.readADCSignalEnded(1, adc_gain, adc_sample_rate) / 1000
-			z_volts = adc.readADCSignalEnded(2, adc_gain, adc_sample_rate) / 1000
+			x_volts = adc.readADCSingleEnded(0, adc_gain, adc_sample_rate) / 1000
+			y_volts = adc.readADCSingleEnded(1, adc_gain, adc_sample_rate) / 1000
+			z_volts = adc.readADCSingleEnded(2, adc_gain, adc_sample_rate) / 1000
 
 			streamer.log("200_x_volts", x_volts)
 			streamer.log("200_y_volts", y_volts)
