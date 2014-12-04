@@ -26,21 +26,25 @@ def get_and_record_baro():
 	baro.initialize()
 	
 	while True:
-		baro.refreshPressure()
-		baro.refreshTemperature()
-		time.sleep(0.01)
-		baro.readPressure()
-		baro.readTemperature()
+		try:
+			baro.refreshPressure()
+			baro.refreshTemperature()
+			time.sleep(0.01)
+			baro.readPressure()
+			baro.readTemperature()
 
-		baro.calculatePressureAndTemperature()
-		reading = {
-			'pressure(millibar)': baro.PRES,
-			'temp(C)': baro.TEMP
-		}
+			baro.calculatePressureAndTemperature()
+			reading = {
+				'pressure(millibar)': baro.PRES,
+				'temp(C)': baro.TEMP
+			}
 
-		streamer.log_object(reading, signal_prefix="baro")
+			streamer.log_object(reading, signal_prefix="baro")
 
-		time.sleep(1)
+			time.sleep(1)
+		except KeyboardInterrupt:
+			print "KeyboardInterrupt fired"
+			break
 
 def get_and_record_200g_accel():
 	# ADC addresses
@@ -53,16 +57,20 @@ def get_and_record_200g_accel():
 	adc = ADS1x15(ic=ADS1115)
 	
 	while True:
-		# Get the +/- 200g accelerometer readings
-		x_volts = adc.readADCSignalEnded(0, adc_gain, adc_sample_rate) / 1000
-		y_volts = adc.readADCSignalEnded(1, adc_gain, adc_sample_rate) / 1000
-		z_volts = adc.readADCSignalEnded(2, adc_gain, adc_sample_rate) / 1000
+		try:
+			# Get the +/- 200g accelerometer readings
+			x_volts = adc.readADCSignalEnded(0, adc_gain, adc_sample_rate) / 1000
+			y_volts = adc.readADCSignalEnded(1, adc_gain, adc_sample_rate) / 1000
+			z_volts = adc.readADCSignalEnded(2, adc_gain, adc_sample_rate) / 1000
 
-		streamer.log("200_x_volts", x_volts)
-		streamer.log("200_y_volts", y_volts)
-		streamer.log("200_z_volts", z_volts)
+			streamer.log("200_x_volts", x_volts)
+			streamer.log("200_y_volts", y_volts)
+			streamer.log("200_z_volts", z_volts)
 
-		#Do I need to sleep here??
+			#Do I need to sleep here??
+		except KeyboardInterrupt:
+			print "KeyboardInterrupt fired"
+			break
 
 def get_and_record_accel_gyro_compas():
 	imu = MPU9250()
@@ -73,29 +81,33 @@ def get_and_record_accel_gyro_compas():
 	time.sleep(1)
 
 	while True:
-		m9a, m9g, m9m = imu.getMotion9()
+		try:
+			m9a, m9g, m9m = imu.getMotion9()
 
-		accel = {
-			"x": m9a[0],
-			"y": m9a[1],
-			"z": m9a[2]
-		}
-		gyro = {
-			"x": m9g[0],
-			"y": m9g[1],
-			"z": m9g[2]
-		}
-		mag = {
-			"x": m9m[0],
-			"y": m9m[1],
-			"z": m9m[2]
-		}
+			accel = {
+				"x": m9a[0],
+				"y": m9a[1],
+				"z": m9a[2]
+			}
+			gyro = {
+				"x": m9g[0],
+				"y": m9g[1],
+				"z": m9g[2]
+			}
+			mag = {
+				"x": m9m[0],
+				"y": m9m[1],
+				"z": m9m[2]
+			}
 
-		streamer.log_object(accel, signal_prefix="accel")
-		streamer.log_object(gyro, signal_prefix="gyro")
-		streamer.log_object(mag, signal_prefix="mag")
+			streamer.log_object(accel, signal_prefix="accel")
+			streamer.log_object(gyro, signal_prefix="gyro")
+			streamer.log_object(mag, signal_prefix="mag")
 
-		time.sleep(0.1)
+			time.sleep(0.1)
+		except KeyboardInterrupt:
+			print "KeyboardInterrupt fired"
+			break
 
 if __name__ == "__main__":
 	baro_thread = threading.Thread(target=get_and_record_baro)
