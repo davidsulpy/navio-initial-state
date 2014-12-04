@@ -14,39 +14,37 @@ from ISStreamer.Streamer import Streamer
 
 streamer = Streamer(bucket="Data Collection Board", buffer_size=20)
 
+
 def signal_handler(signal, frame):
 	print 'Ctrl+C pressed!'
 	sys.exit(0)
 signal.signal(signal.SIGINT, signal_handler)
 
 
-def get_and_record_baro():
+def get_and_record_baro(stop_event):
 	# barometer
 	baro = MS5611()
 	baro.initialize()
 	
-	while True:
-		try:
-			baro.refreshPressure()
-			baro.refreshTemperature()
-			time.sleep(0.01)
-			baro.readPressure()
-			baro.readTemperature()
+	while (not stop_event.is_set()):
+		baro.refreshPressure()
+		baro.refreshTemperature()
+		time.sleep(0.01)
+		baro.readPressure()
+		baro.readTemperature()
 
-			baro.calculatePressureAndTemperature()
-			reading = {
-				'pressure(millibar)': baro.PRES,
-				'temp(C)': baro.TEMP
-			}
+		baro.calculatePressureAndTemperature()
+		reading = {
+			'pressure(millibar)': baro.PRES,
+			'temp(C)': baro.TEMP
+		}
 
-			streamer.log_object(reading, signal_prefix="baro")
+		streamer.log_object(reading, signal_prefix="baro")
 
-			time.sleep(1)
-		except KeyboardInterrupt:
-			print "KeyboardInterrupt fired"
-			break
+		time.sleep(1)
+	print "barometer finished!"
 
-def get_and_record_200g_accel():
+def get_and_record_200g_accel(stop_event):
 	# ADC addresses
 	ADS1015 = 0x00 # 12-bit ADC
 	ADS1115 = 0x01 # 16-bit ADC
@@ -56,23 +54,19 @@ def get_and_record_200g_accel():
 	adc_sample_rate = 250 # 250 samples per second
 	adc = ADS1x15(ic=ADS1115)
 	
-	while True:
-		try:
-			# Get the +/- 200g accelerometer readings
-			x_volts = adc.readADCSingleEnded(0, adc_gain, adc_sample_rate) / 1000
-			y_volts = adc.readADCSingleEnded(1, adc_gain, adc_sample_rate) / 1000
-			z_volts = adc.readADCSingleEnded(2, adc_gain, adc_sample_rate) / 1000
+	while (not stop_event.is_set()):
+		# Get the +/- 200g accelerometer readings
+		x_volts = adc.readADCSingleEnded(0, adc_gain, adc_sample_rate) / 1000
+		y_volts = adc.readADCSingleEnded(1, adc_gain, adc_sample_rate) / 1000
+		z_volts = adc.readADCSingleEnded(2, adc_gain, adc_sample_rate) / 1000
 
-			streamer.log("200_x_volts", x_volts)
-			streamer.log("200_y_volts", y_volts)
-			streamer.log("200_z_volts", z_volts)
+		streamer.log("200_x_volts", x_volts)
+		streamer.log("200_y_volts", y_volts)
+		streamer.log("200_z_volts", z_volts)
 
-			#Do I need to sleep here??
-		except KeyboardInterrupt:
-			print "KeyboardInterrupt fired"
-			break
+	print "200g accel finished!"
 
-def get_and_record_accel_gyro_compas():
+def get_and_record_accel_gyro_compas(stop_event):
 	imu = MPU9250()
 	test_connection = imu.testConnection()
 	streamer.log("imu_debug", "connection established: {}".format(test_connection))
@@ -80,43 +74,46 @@ def get_and_record_accel_gyro_compas():
 	imu.initialize()
 	time.sleep(1)
 
-	while True:
-		try:
-			m9a, m9g, m9m = imu.getMotion9()
+	while (not stop_event.is_set()):
+		m9a, m9g, m9m = imu.getMotion9()
 
-			accel = {
-				"x": m9a[0],
-				"y": m9a[1],
-				"z": m9a[2]
-			}
-			gyro = {
-				"x": m9g[0],
-				"y": m9g[1],
-				"z": m9g[2]
-			}
-			mag = {
-				"x": m9m[0],
-				"y": m9m[1],
-				"z": m9m[2]
-			}
+		accel = {
+			"x": m9a[0],
+			"y": m9a[1],
+			"z": m9a[2]
+		}
+		gyro = {
+			"x": m9g[0],
+			"y": m9g[1],
+			"z": m9g[2]
+		}
+		mag = {
+			"x": m9m[0],
+			"y": m9m[1],
+			"z": m9m[2]
+		}
 
-			streamer.log_object(accel, signal_prefix="accel")
-			streamer.log_object(gyro, signal_prefix="gyro")
-			streamer.log_object(mag, signal_prefix="mag")
+		streamer.log_object(accel, signal_prefix="accel")
+		streamer.log_object(gyro, signal_prefix="gyro")
+		streamer.log_object(mag, signal_prefix="mag")
 
-			time.sleep(0.1)
-		except KeyboardInterrupt:
-			print "KeyboardInterrupt fired"
-			break
+		time.sleep(0.1)
+
+	print "imu finished!"
 
 if __name__ == "__main__":
-	baro_thread = threading.Thread(target=get_and_record_baro)
+	stop_event = threading.Event()
+	baro_thread = threading.Thread(target=get_and_record_baro, kwargs={"stop_event": stop_event})
 	baro_thread.daemon = False
-	accel_thread = threading.Thread(target=get_and_record_200g_accel)
+	accel_thread = threading.Thread(target=get_and_record_200g_accel, kwargs={"stop_event": stop_event})
 	accel_thread.daemon = False
-	imu_thread = threading.Thread(target=get_and_record_accel_gyro_compas)
+	imu_thread = threading.Thread(target=get_and_record_accel_gyro_compas, kwargs={"stop_event": stop_event})
 	imu_thread.daemon = False
 
 	baro_thread.start()
 	accel_thread.start()
 	imu_thread.start()
+
+	stop = raw_input("Press [ENTER] to end.")
+
+	stop_event.set()
