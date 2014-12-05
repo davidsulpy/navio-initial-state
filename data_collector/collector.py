@@ -46,13 +46,13 @@ def get_and_record_baro(stop_event):
 
 def get_and_record_200g_accel(stop_event):
 	# ADC addresses
-	ADS1015 = 0x00 # 12-bit ADC
-	ADS1115 = 0x01 # 16-bit ADC
+	#ADS1015 = 0x00 # 12-bit ADC maximum sample rate (3300)
+	ADS1115 = 0x01 # 16-bit ADC maximum sample rate (860)
 
 	# adc settings
 	adc_gain = 4096 # +/- 4.096V gain
-	adc_sample_rate = 1600 # 1600 samples per second
-	adc = ADS1x15(ic=ADS1115)
+	adc_sample_rate = 860 # 860 samples per second
+	adc = ADS1x15(ic=ADS1115) ## http://www.ti.com/lit/ds/symlink/ads1115.pdf
 	
 	while (not stop_event.is_set()):
 		# Get the +/- 200g accelerometer readings
@@ -60,18 +60,21 @@ def get_and_record_200g_accel(stop_event):
 		y_volts = adc.readADCSingleEnded(1, adc_gain, adc_sample_rate)
 		z_volts = adc.readADCSingleEnded(2, adc_gain, adc_sample_rate)
 
-		streamer.log("200_x_volts", x_volts)
-		streamer.log("200_y_volts", y_volts)
-		streamer.log("200_z_volts", z_volts)
+		streamer.log("200_x_mVolts", x_volts)
+		streamer.log("200_y_mVolts", y_volts)
+		streamer.log("200_z_mVolts", z_volts)
 
 	print "200g accel finished!"
 
 def get_and_record_accel_gyro_compas(stop_event):
-	imu = MPU9250()
+	imu = MPU9250() # http://www.invensense.com/mems/gyro/documents/PS-MPU-9250A-01.pdf
 	test_connection = imu.testConnection()
 	streamer.log("imu_debug", "connection established: {}".format(test_connection))
 	streamer.log("imu_message", "initializing")
 	imu.initialize()
+	## Accel scale is +/- 16g
+	## Gyro scale is +/- 2000 deg/s
+	## Magnetometer is +/- 4800 micro Teslas sensitivity 0.6 microT/LSB
 	time.sleep(1)
 	streamer.log("imu_message", "initialized")
 
