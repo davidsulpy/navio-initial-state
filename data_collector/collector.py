@@ -29,7 +29,7 @@ def get_and_record_baro(stop_event):
 	while (not stop_event.is_set()):
 		baro.refreshPressure()
 		baro.refreshTemperature()
-		time.sleep(0.01)
+		time.sleep(0.01) # 10 milliseconds
 		baro.readPressure()
 		baro.readTemperature()
 
@@ -51,14 +51,14 @@ def get_and_record_200g_accel(stop_event):
 
 	# adc settings
 	adc_gain = 4096 # +/- 4.096V gain
-	adc_sample_rate = 250 # 250 samples per second
+	adc_sample_rate = 1600 # 1600 samples per second
 	adc = ADS1x15(ic=ADS1115)
 	
 	while (not stop_event.is_set()):
 		# Get the +/- 200g accelerometer readings
-		x_volts = adc.readADCSingleEnded(0, adc_gain, adc_sample_rate) / 1000
-		y_volts = adc.readADCSingleEnded(1, adc_gain, adc_sample_rate) / 1000
-		z_volts = adc.readADCSingleEnded(2, adc_gain, adc_sample_rate) / 1000
+		x_volts = adc.readADCSingleEnded(0, adc_gain, adc_sample_rate)
+		y_volts = adc.readADCSingleEnded(1, adc_gain, adc_sample_rate)
+		z_volts = adc.readADCSingleEnded(2, adc_gain, adc_sample_rate)
 
 		streamer.log("200_x_volts", x_volts)
 		streamer.log("200_y_volts", y_volts)
@@ -73,6 +73,7 @@ def get_and_record_accel_gyro_compas(stop_event):
 	streamer.log("imu_message", "initializing")
 	imu.initialize()
 	time.sleep(1)
+	streamer.log("imu_message", "initialized")
 
 	while (not stop_event.is_set()):
 		m9a, m9g, m9m = imu.getMotion9()
@@ -97,7 +98,7 @@ def get_and_record_accel_gyro_compas(stop_event):
 		streamer.log_object(gyro, signal_prefix="gyro")
 		streamer.log_object(mag, signal_prefix="mag")
 
-		time.sleep(0.1)
+		time.sleep(0.01) # 10 millisecond resolution
 
 	print "imu finished!"
 
