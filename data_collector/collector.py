@@ -37,8 +37,8 @@ def get_and_record_baro(stop_event):
 
 		baro.calculatePressureAndTemperature()
 		reading = {
-			'pressure(millibar)': baro.PRES,
-			'temp(C)': baro.TEMP
+			'pressure (millibar)': baro.PRES,
+			'temp (C)': baro.TEMP
 		}
 
 		streamer.log_object(reading, signal_prefix="baro")
@@ -64,14 +64,11 @@ def get_and_record_200g_accel(stop_event):
 	while (not stop_event.is_set()):
 		# Get the +/- 200g accelerometer readings
 		x_volts = adc.readADCSingleEnded(0, adc_gain, adc_sample_rate)
+		streamer.log("200g_accel_y (mV)", x_volts) # this is labeled as y because accel is rotated 90deg
 		y_volts = adc.readADCSingleEnded(1, adc_gain, adc_sample_rate)
+		streamer.log("200g_accel_x (mV)", y_volts) # this is labeled as x because accel is rotated 90deg
 		z_volts = adc.readADCSingleEnded(2, adc_gain, adc_sample_rate)
-
-		streamer.log_object({
-				"x (mV)": y_volts, # the 200g accel is oriented differently than the other accel
-				"y (mV)": x_volts, #  x and y are switched
-				"z (mV)": z_volts # z is the same
-			})
+		streamer.log("200g_accel_z (mV)", z_volts)
 
 	print "200g accel finished!"
 
@@ -110,7 +107,7 @@ def get_and_record_accel_gyro_compas(stop_event):
 		streamer.log_object(gyro, signal_prefix="gyro")
 		streamer.log_object(mag, signal_prefix="mag")
 
-		time.sleep(0.01) # 10 millisecond resolution
+		time.sleep(0.008) # 8 millisecond resolution
 
 	print "imu finished!"
 
