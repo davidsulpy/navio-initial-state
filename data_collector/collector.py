@@ -28,9 +28,11 @@ def get_and_record_baro(stop_event):
 	
 	while (not stop_event.is_set()):
 		baro.refreshPressure()
-		baro.refreshTemperature()
-		time.sleep(0.01) # 10 milliseconds
+		time.sleep(0.01) # Waiting for pressure data ready 10ms
 		baro.readPressure()
+
+		baro.refreshTemperature()
+		time.sleep(0.01) # Waiting for temperature data ready 10ms
 		baro.readTemperature()
 
 		baro.calculatePressureAndTemperature()
@@ -46,23 +48,30 @@ def get_and_record_baro(stop_event):
 
 def get_and_record_200g_accel(stop_event):
 	# ADC addresses
-	#ADS1015 = 0x00 # 12-bit ADC maximum sample rate (3300)
-	ADS1115 = 0x01 # 16-bit ADC maximum sample rate (860)
+	ADS1015 = 0x00 # 12-bit ADC maximum sample rate (3300)
+	#ADS1115 = 0x01 # 16-bit ADC maximum sample rate (860)
 
-	# adc settings
-	adc_gain = 4096 # +/- 4.096V gain
-	adc_sample_rate = 860 # 860 samples per second
-	adc = ADS1x15(ic=ADS1115) ## http://www.ti.com/lit/ds/symlink/ads1115.pdf
+	# ADS1115 adc settings
+	# adc_gain = 4096 # +/- 4.096V gain
+	# adc_sample_rate = 860 # 860 samples per second
+	# adc = ADS1x15(ic=ADS1115) ## http://www.ti.com/lit/ds/symlink/ads1115.pdf
 	
+	# ADS1015 adc settings
+	adc_gain = 4096 # +/- 4.096V gain
+	adc_sample_rate = 1600 # 1600 samples per second
+	adc = ADS1x15(ic=ADS1015) ## http://www.ti.com/lit/ds/symlink/ads1115.pdf
+
 	while (not stop_event.is_set()):
 		# Get the +/- 200g accelerometer readings
 		x_volts = adc.readADCSingleEnded(0, adc_gain, adc_sample_rate)
 		y_volts = adc.readADCSingleEnded(1, adc_gain, adc_sample_rate)
 		z_volts = adc.readADCSingleEnded(2, adc_gain, adc_sample_rate)
 
-		streamer.log("200_y_mVolts", x_volts) # the 200g accel is oriented differently than the other accel
-		streamer.log("200_x_mVolts", y_volts) #  x and y are switched
-		streamer.log("200_z_mVolts", z_volts) # z is the same
+		streamer.log_object({
+				"x (mV)": y_volts, # the 200g accel is oriented differently than the other accel
+				"y (mV)": x_volts, #  x and y are switched
+				"z (mV)": z_volts # z is the same
+			})
 
 	print "200g accel finished!"
 
