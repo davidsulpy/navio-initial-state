@@ -60,9 +60,9 @@ def get_and_record_200g_accel(stop_event):
 		y_volts = adc.readADCSingleEnded(1, adc_gain, adc_sample_rate)
 		z_volts = adc.readADCSingleEnded(2, adc_gain, adc_sample_rate)
 
-		streamer.log("200_x_mVolts", x_volts)
-		streamer.log("200_y_mVolts", y_volts)
-		streamer.log("200_z_mVolts", z_volts)
+		streamer.log("200_y_mVolts", x_volts) # the 200g accel is oriented differently than the other accel
+		streamer.log("200_x_mVolts", y_volts) #  x and y are switched
+		streamer.log("200_z_mVolts", z_volts) # z is the same
 
 	print "200g accel finished!"
 
