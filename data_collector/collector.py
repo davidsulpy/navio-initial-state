@@ -12,7 +12,7 @@ import threading
 # Initial State Imports
 from ISStreamer.Streamer import Streamer
 
-streamer = Streamer(bucket="Data Collection Board", buffer_size=20)
+streamer = Streamer(bucket_key="navio_initialstate", buffer_size=20)
 
 
 def signal_handler(signal, frame):

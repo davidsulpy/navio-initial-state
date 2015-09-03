@@ -3,27 +3,27 @@ from ISStreamer.Streamer import Streamer
 
 def read_args(argv):
 	try:
-		opts, args = getopt.getopt(argv,"hb:k:",["bucket_name=", "client_key="])
+		opts, args = getopt.getopt(argv,"hb:k:",["bucket_name=", "access_key="])
 	except getopt.GetoptError:
-		print('example_command_line.py -b <bucket_name> -k <client_key> -f <file_location>')
+		print('data_shipper.py -b <bucket_name> -k <access_key> -f <file_location>')
 
 	for opt, arg in opts:
 		if opt == '-h':
-			print('example_command_line.py -b <bucket_name> -k <client_key>')
+			print('data_shipper.py -b <bucket_name> -k <access_key>')
 		elif opt in ("-b", "--bucket_name"):
 			bucket = arg
-		elif opt in ("-k", "--client_key"):
-			client_key = arg
+		elif opt in ("-k", "--access_key"):
+			access_key = arg
 		elif opt in ("-f", "--file"):
 			file_location = arg
 
-	return bucket, client_key, file_location
+	return bucket, access_key, file_location
 
 
 if __name__ == "__main__":
-	bucket, client_key, file_location = read_args(sys.argv[1:])
+	bucket, access_key, file_location = read_args(sys.argv[1:])
 
-	streamer = Streamer(bucket=bucket, client_key=client_key, buffer_size=20, offline=False)
+	streamer = Streamer(bucket_key=bucket, access_key=access_key, buffer_size=20, offline=False)
 
 	with open(file_location, 'rb') as csvfile:
 		reader = csv.reader(csvfile)
